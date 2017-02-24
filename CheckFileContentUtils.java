@@ -1,7 +1,5 @@
 package de.ianus.ingest.core.processEngine.ms.utils;
 
-
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
@@ -18,8 +16,6 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang.StringUtils;
 import org.apache.log4j.Logger;
-
-
 
 /**
  * This class checks directory file each other. If there are duplicate content
@@ -42,9 +38,7 @@ public class CheckFileContentUtils {
 	public static ResultSetDuplicate scanDuplicateFiles(String dataFolderPathName) throws Exception {
 	
 		ResultSetDuplicate rs = new ResultSetDuplicate();
-		
 		File dataFolder = new File(dataFolderPathName);
-
 		long startTime = System.currentTimeMillis();
 		
 		compareRecursively(dataFolder, rs.rsFileContentComparison, "content");
@@ -81,9 +75,7 @@ public class CheckFileContentUtils {
 	public static void printLog(long startTime){
 		
 		Runtime runtime = Runtime.getRuntime();
-
 		NumberFormat format = NumberFormat.getInstance();
-
 		StringBuilder sb = new StringBuilder("\tTotal Time to Compare All Files ::: > " + (System.currentTimeMillis() - startTime) / 1000 + " secs\n");
 		long maxMemory = runtime.maxMemory();
 		long allocatedMemory = runtime.totalMemory();
@@ -154,7 +146,6 @@ public class CheckFileContentUtils {
 	public static String encodeFileToMD5ApacheFileNameWithExtenstion(File file) throws Exception{
 		
 		String fis = file.getName().toLowerCase();
-		
 		byte data[] = DigestUtils.md5(fis);
 		char md5Chars[] = Hex.encodeHex(data);
 		String md5 = String.valueOf(md5Chars);
@@ -172,9 +163,7 @@ public class CheckFileContentUtils {
 	public static String encodeFileToMD5ApacheFileNameWithoutExtenstion(File file) throws Exception{
 		
 		String f1 = file.getName().toLowerCase();
-
 		String filename = FilenameUtils.getBaseName(f1);
-		
 		byte data[] = DigestUtils.md5(filename);
 		char md5Chars[] = Hex.encodeHex(data);
 		String md5 = String.valueOf(md5Chars);
@@ -198,6 +187,64 @@ public class CheckFileContentUtils {
 		
 		return md5.toString();
 	}
-	
-	
+	/**
+	 * Main Method use to check file content from the console.
+	 * 
+	 * @param
+	 * @return
+	 * @throws Exception
+	 */
+	public static void main(String... args) throws Exception {
+		
+		logger.info("SSSSSS");
+		ResultSetDuplicate rs = scanDuplicateFiles("/Users/mr/Desktop/hello");
+		logger.info("Duplicate Files Are: ");
+		
+		File filename = new File("/Users/mr/Desktop/newfile.txt");
+
+		try (FileOutputStream fop = new FileOutputStream(filename)) {
+			// if file doesn't exists, then create it
+			if (!filename.exists()) {
+				filename.createNewFile();
+			}
+			for (List<String> duplicateCase : rs.rsFileContentComparison) {
+				for (String file : duplicateCase) {
+					// get the content in bytes
+					byte[] contentInBytes = file.getBytes();
+					System.out.print(file.toString() + ", ");
+					fop.write(contentInBytes);
+				}
+				System.out.println();
+			}
+			System.out.println();
+			System.out.println("Duplicate Files Name Are Without Extension: ");
+			
+			for(List<String> duplicateFileName : rs.rsFileNameWithoutExtensionComparison){
+				for(String file : duplicateFileName){
+					// get the content in bytes
+					byte[] contentInBytes = file.getBytes();
+					System.out.print(file.toString() + ", ");
+					fop.write(contentInBytes);
+				}
+				System.out.println();
+			}
+			System.out.println("Duplicate Files Name Are With Extension: ");
+			
+			for(List<String> duplicateFileName : rs.rsFileNameWithExtensionComparison){
+				for(String file : duplicateFileName){
+					// get the content in bytes
+					byte[] contentInBytes = file.getBytes();
+					System.out.print(file.toString() + ", ");
+					fop.write(contentInBytes);
+				}
+				System.out.println();
+			}
+			fop.flush();
+			fop.close();
+			System.out.println("Done");
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
 }
